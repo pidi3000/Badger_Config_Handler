@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Badger-Config-Handler"
+version = "0.1.1"
+description = "Config handler for code declared and file defined settings."
+readme = "README.md"
+requires-python = ">=3.10"
+# license = {file = "LICENSE"}
+keywords = ["settings handler", "config handler", "json", "yaml"]
+authors = [
+  {name = "pidi3000"},
+]
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+]
+
+# dependencies = [
+#   "json",
+# ]
+
+# dynamic = ["version", "description"]
+
+[project.optional-dependencies]
+yaml = [
+  "pyyaml",
+]
+
+[project.urls]
+Repository = "https://github.com/pidi3000/Badger_Config_Handler"
