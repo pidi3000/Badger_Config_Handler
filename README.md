@@ -134,7 +134,7 @@ NOTE: the property [parent_section](#parent_section) is NOT available during thi
 ---
 
 ### pre_process()
-Pre process values before [save()](#save())
+Pre process values before [save()](#save)
 
 useful for:
 - converting unsupported data type to a [native](#native) or [supported](#supported) type
@@ -143,7 +143,7 @@ useful for:
 ---
 
 ### post_process()
-post process values after [load()](#load())
+post process values after [load()](#load)
 
 useful for:
 - creating unsupported data type from [native](#native) or [supported](#supported) type
@@ -169,7 +169,7 @@ Reconstruct Config Section from dictionary
 
  | param          | type                           | description                                                                                                                        | required | default |
 |----------------|--------------------------------|------------------------------------------------------------------------------------------------------------------------------------|----------|---------|
-| data           | dict\[str, [native](#native)\] | the dict representation of this section (as generated from [to_dict(True)](#to_dict(bool)) )                                       | x        |         |
+| data           | dict\[str, [native](#native)\] | the dict representation of this section (as generated from [to_dict(True)](#to_dictbool) )                                         | x        |         |
 | safe_load      | bool                           | ! UNTESTED ! <br> True -> Only variables that already exist in the class are set (uses `hasattr`) <br> False -> New variables can be set from config file |          | True    |
 | danger_convert | bool                           | ! UNTESTED ! <br> For details see docs of `_native_to_var()`                                                                        |          | False   |
 
