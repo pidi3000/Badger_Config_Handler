@@ -865,7 +865,12 @@ class Badger_Config_Base(Badger_Config_Section):
             Config file type unsupported
         """
         suffix = self._config_file_path.suffix
-        suffix = suffix.removeprefix(".").lower()
+        try:
+            suffix = suffix.removeprefix(".").lower()
+        except AttributeError as e:
+            prefix = "."
+            if suffix.startswith(prefix):
+                suffix = suffix[len(prefix):]
 
         if suffix in self.ALLOWED_FILE_TYPES:
             self._config_file_type = suffix
