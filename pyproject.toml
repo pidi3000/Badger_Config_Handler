@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "Badger-Config-Handler"
+name = "badger-config-handler"
 version = "0.1.0"
 description = "Config handler for code-declared and file-defined settings."
 readme = "README.md"
