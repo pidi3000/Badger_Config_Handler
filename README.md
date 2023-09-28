@@ -3,6 +3,13 @@ A python library for handling code-declared and file-defined settings.
 
 Supports saving to JSON and YAML files.
 
+# Installation
+
+Install from [PyPi](https://pypi.org/project/badger-config-handler/)
+
+```
+pip install badger-config-handler
+```
 
 # Data types
 
