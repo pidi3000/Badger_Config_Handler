@@ -60,14 +60,14 @@ class Badger_Config_Section(ABC):
     _sections: list[Badger_Config_Section]
     parent_section: Badger_Config_Section
 
-    def __init__(self, root_path: str | Path = None, section_name: str = None) -> None:
+    def __init__(self, root_path: Union[Path, str] = None, section_name: str = None) -> None:
         """ !! DO NOT OVERWRITE !!
 
         overwriting init will break shit, use the `setup()` function instead
 
         Parameters
         ----------
-        root_path : str | Path, optional
+        root_path : Union[Path, str], optional
             root path of this section, by default root_path of parent section
 
         section_name : str, optional
@@ -115,12 +115,12 @@ class Badger_Config_Section(ABC):
     def __repr__(self) -> str:
         return f"<Badger_Config_Section: {self.section_name} -- {self.__class__.__name__}>"
 
-    def _make_absolute_path(self, path: str | Path) -> Path:
+    def _make_absolute_path(self, path: Union[Path, str]) -> Path:
         """Turn into absolute Path
 
         Parameters
         ----------
-        path : str | Path
+        path : Union[Path, str]
             the (relative) path
 
         Returns
@@ -196,7 +196,7 @@ class Badger_Config_Section(ABC):
         print(f"section_name = {self.section_name}")
         print(f"section_name set = {hasattr(self, 'section_name')}")
 
-    def _set_root_path(self, root_path: str | Path, force_override: bool = False):
+    def _set_root_path(self, root_path: Union[Path, str], force_override: bool = False):
         """Set the root_path with conditions
 
         The new root_path will only be set if it has no value.
@@ -244,7 +244,7 @@ class Badger_Config_Section(ABC):
     ##################################################
     # Section Handling
     ##################################################
-    def _update_sections_all(self, parent_section: Badger_Config_Section = None, root_path: str | Path = None):
+    def _update_sections_all(self, parent_section: Badger_Config_Section = None, root_path: Union[Path, str] = None):
         """Update all child sections
 
         Updates this instances `roo_path` and `parent_section`,
@@ -259,7 +259,7 @@ class Badger_Config_Section(ABC):
         ----------
         parent_section : Badger_Config_Section, optional
             reference to the parent section instance, by default None
-        root_path : str | Path, optional
+        root_path : Union[Path, str], optional
             new root_path, by default None
         """
 
@@ -275,7 +275,7 @@ class Badger_Config_Section(ABC):
             # root_path="path"
         )
 
-    def _update_section(self, parent_section: Badger_Config_Section = None, root_path: str | Path = None):
+    def _update_section(self, parent_section: Badger_Config_Section = None, root_path: Union[Path, str] = None):
         """Update this section
 
         set's the parent section, root path and collects all child sections
@@ -284,7 +284,7 @@ class Badger_Config_Section(ABC):
         ----------
         parent_section : Badger_Config_Section, optional
             reference to the parent section instance, by default None
-        root_path : str | Path, optional
+        root_path : Union[Path, str], optional
             new root_path, by default None
         """
 
@@ -386,7 +386,7 @@ class Badger_Config_Section(ABC):
     ##################################################
     def from_dict(
         self,
-        data: dict[str, str | int | float | bool],
+        data: dict[str, Union[str, int, float, bool]],
         safe_load: bool = True,
         danger_convert: bool = False
     ) -> Badger_Config_Section:
@@ -833,17 +833,17 @@ class Badger_Config_Base(Badger_Config_Section):
     """Absolute config file path"""
     _config_file_type: str = None
 
-    def __init__(self, config_file_path: str | Path, root_path: str | Path = __file__, section_name: str = None) -> None:
+    def __init__(self, config_file_path: Union[Path, str], root_path: Union[Path, str] = __file__, section_name: str = None) -> None:
         """ !! DO NOT OVERWRITE !!
 
         overwriting init will break shit, use the `setup()` function instead
 
         Parameters
         ----------
-        config_file_path : str | Path
+        config_file_path : Union[Path, str]
             path to the config file, is created if not exists (including folders)
 
-        root_path : str | Path, optional
+        root_path : Union[Path, str], optional
             Project root path, by default parent directory of this file (`__file__`)
 
         section_name : str, optional

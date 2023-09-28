@@ -1,6 +1,7 @@
 
 from pathlib import Path
 import sys
+from typing import Union
 
 sys.path.insert(0, str(Path(__file__).parent.parent.joinpath("src")))
 
@@ -32,7 +33,7 @@ class Base_Test():
                 self.TEST_CONFIG_PATH.unlink()
 
 
-    def get_test_config(self, config_file_path: Path | str = None) -> Badger_Config_Base:
+    def get_test_config(self, config_file_path: Union[Path, str] = None) -> Badger_Config_Base:
         class Sub_Section(Badger_Config_Section):
             section_var: str
             section_int: int
