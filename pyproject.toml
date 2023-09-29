@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "badger-config-handler"
-version = "0.1.0"
+version = "0.1.1"
 description = "Config handler for code-declared and file-defined settings."
 readme = "README.md"
 requires-python = ">=3.10"
