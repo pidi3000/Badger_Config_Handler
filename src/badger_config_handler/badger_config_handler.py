@@ -16,7 +16,7 @@ DEBUG_init = False
 DEBUG_from_dict = False
 DEBUG_to_dict = False
 
-DEBUG__native_to_var = True
+DEBUG__native_to_var = False
 DEBUG_save = False
 DEBUG_load = False
 DEBUG__load_from_file = False
@@ -635,7 +635,7 @@ class Badger_Config_Section(ABC):
         if var is not BADGER_NONE:
             # if var is None:
             #     return True
-            print(f"DEBUG NATIVE: var: {var}")
+            # print(f"DEBUG NATIVE: var: {var}")
             return isinstance(var, native_types)
             # return isinstance(var, native_types) if var is not None else True
         if type is not BADGER_NONE:
@@ -874,7 +874,7 @@ class Badger_Config_Base(Badger_Config_Section):
 
         if suffix in self.ALLOWED_FILE_TYPES:
             self._config_file_type = suffix
-            print("Config file type:", self._config_file_type)
+            # print("Config file type:", self._config_file_type)
             return
 
         raise TypeError(
