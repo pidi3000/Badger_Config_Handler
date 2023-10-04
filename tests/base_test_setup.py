@@ -13,7 +13,7 @@ class Base_Test():
     TEST_DATA_DIR = Path(__file__).parent.joinpath("data")
     TEST_CONFIG_PATH: Path
     # print(TEST_DATA_DIR)
-    
+
     def __init__(self, config_file_name: str) -> None:
         """
 
@@ -24,14 +24,12 @@ class Base_Test():
         """
         self.TEST_CONFIG_PATH = self.TEST_DATA_DIR.joinpath(config_file_name)
 
-
     def setup_data_dir(self, remove_config_file=True):
         self.TEST_DATA_DIR.mkdir(exist_ok=True)
 
         if remove_config_file:
             if self.TEST_CONFIG_PATH.exists():
                 self.TEST_CONFIG_PATH.unlink()
-
 
     def get_test_config(self, config_file_path: Union[Path, str] = None) -> Badger_Config_Base:
         class Sub_Section(Badger_Config_Section):
@@ -45,14 +43,15 @@ class Base_Test():
         class base(Badger_Config_Base):
             my_var: str
             my_int: int
+            my_none: str
 
             def setup(self):
                 self.my_var = "test"
                 self.my_int = 50
+                self.my_none = None
 
             sub_section = Sub_Section(section_name="sub")
-            
-        
+
         if config_file_path is None:
             config_file_path = self.TEST_CONFIG_PATH
 
@@ -60,36 +59,37 @@ class Base_Test():
 
     ####################################################################################################
 
-
     def get_config_dict(self, conf: Badger_Config_Base):
         data = {}
-        
+
         for key, value in conf.to_dict(convert_to_native=False).items():
-            
-            if isinstance(value,Badger_Config_Section):
+
+            if isinstance(value, Badger_Config_Section):
                 value = self.get_config_dict(value)
-                
+
             data[key] = value
-                
+
         return data
+
     ####################################################################################################
 
-
-    # test save to file
     def test_save_config(self, ):
         self.setup_data_dir()
         conf = self.get_test_config()
         conf.save()
 
-
+    ##################################################
     # test load from file
+    ##################################################
+
     def test_load_config(self, ):
         self.setup_data_dir()
         conf = self.get_test_config()
         conf.load()
 
-    # compared loaded data to original
-
+    ##################################################
+    # compare loaded data to original
+    ##################################################
 
     def test_compare_config(self, ):
         self.setup_data_dir()
@@ -102,6 +102,42 @@ class Base_Test():
 
         assert start_conf == end_conf
 
+    ##################################################
+    # test default None values overwrite
+    ##################################################
+
+    def test_null_default_handled_right(self):
+        self.setup_data_dir()
+        conf = self.get_test_config()
+
+        conf.sync()
+        start_conf = self.get_config_dict(conf)
+
+        conf.my_none = "test"
+        conf.save()
+
+        mid_conf = self.get_config_dict(conf)
+
+        conf.load()
+        conf = self.get_test_config()
+
+        end_conf = self.get_config_dict(conf)
+
+        print()
+        print("start_conf")
+        print(start_conf)
+
+        print()
+        print("mid_conf")
+        print(mid_conf)
+
+        print()
+        print("end_conf")
+        print(end_conf)
+
+        assert start_conf != mid_conf
+        assert mid_conf == end_conf
+        assert start_conf != end_conf
 
     # test sync
 
