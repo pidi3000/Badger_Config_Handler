@@ -42,345 +42,7 @@ BADGER_NONE = object()
 # * set's work in yaml, but it adds '!!set' to the yaml
 
 
-class Badger_Config_Section(ABC):
-    """ Abstract class of a config section
-
-    Create a child class inhereting this to configure a new section in the config file
-
-    native types:       str, int, float, bool, None
-    supported types:    datetime.datetime, pathlib.Path, Badger_Config_Section
-    supported collections: dict, list
-    """
-
-    root_path: Path
-    """Absolute Project/Section root path"""
-
-    section_name: str = "DEFAULT"
-
-    _sections: list[Badger_Config_Section]
-    parent_section: Badger_Config_Section
-
-    def __init__(self, root_path: Union[Path, str] = None, section_name: str = None) -> None:
-        """ !! DO NOT OVERWRITE !!
-
-        overwriting init will break shit, use the `setup()` function instead
-
-        Parameters
-        ----------
-        root_path : Union[Path, str], optional
-            root path of this section, by default root_path of parent section
-
-        section_name : str, optional
-            Name of this section, by default name of the var asinged to in th parent section\n
-            base example:\n
-            ` my_section = Badger_Config_Section()` -> section_name = "my_section"\n
-            override example:\n
-            ` my_section = Badger_Config_Section(section_name="otehr_section")` -> section_name = "otehr_section"
-        """
-        # section_name not empty string
-        if section_name is not None and section_name.strip():
-            self.section_name = section_name
-        else:
-            self.section_name = "DEFAULT"
-            pass
-
-        if DEBUG_init:
-            print()
-            print("-"*30)
-            print(f"setup Badger_Config_Section")
-            print("-"*30)
-            print(self)
-            print(f"self.section_name = {self.section_name}")
-            print(f"section_name = {section_name}")
-            print()
-        self._set_root_path(root_path=root_path)
-        if DEBUG_init:
-            print("-"*30)
-            print()
-
-        try:
-            self.setup()
-        except NotImplementedError as e:
-            pass
-
-    def setup(self):
-        """Prepare instance and set config propertys to default values 
-
-        use this instead of overwriting `__init__()`
-
-        Gets called after `__init__`
-        """
-        raise NotImplementedError("Subclass has not overriden function")
-
-    def __repr__(self) -> str:
-        return f"<Badger_Config_Section: {self.section_name} -- {self.__class__.__name__}>"
-
-    def _make_absolute_path(self, path: Union[Path, str]) -> Path:
-        """Turn into absolute Path
-
-        Parameters
-        ----------
-        path : Union[Path, str]
-            the (relative) path
-
-        Returns
-        -------
-        Path
-            absolute path using `Path(path).resolve`
-
-        Raises
-        ------
-        TypeError
-            if `path` is not of type `str` or `pathlib.Path`
-        """
-        # if isinstance(path, Path):
-        #     return path.resolve()
-
-        if isinstance(path, (str, Path)):
-            return Path(path).resolve()
-
-        raise TypeError(
-            "Only instances of 'str' and 'pathlib.Path' are supported")
-
-    def _check_name_set_and_not_default(self, var_name: str) -> bool:
-        """Check class var has non default value
-
-        Parameters
-        ----------
-        var_name : str
-            Name of the class var
-
-        Returns
-        -------
-        bool
-            `True` when value set and not default
-        """
-
-        # is set
-        if hasattr(self, var_name):
-            if getattr(self, var_name) != getattr(self.__class__, var_name):
-                return True  # Is not class default
-        return False
-
-    def _set_section_name(self, section_name: str, force_override: bool = False):
-        """Set the section name with conditions
-
-        The new section name will only be set if it wasn't set previously.\n
-        In other words if `section_name` is not set or has the class default value
-
-        Parameters
-        ----------
-        section_name : str
-            desired section name
-        force_override : bool, optional
-            `True` wil ingore check conditionds and override value, by default `False`
-        """
-
-        print(f"section_name set = {hasattr(self, 'section_name')}")
-
-        if section_name is None:
-            print(f"section_name is None = {section_name}")
-            return
-
-        # if hasattr(self, "section_name") and not force_override:
-        # if hasattr(self, "section_name"):
-        if self._check_name_set_and_not_default('section_name'):
-            print(
-                f"section_name already set: {self.section_name}, {self.__class__.section_name}")
-            if not force_override:
-                return
-            print(f"section_name force_override")
-
-        self.section_name = section_name
-
-        print(f"section_name = {self.section_name}")
-        print(f"section_name set = {hasattr(self, 'section_name')}")
-
-    def _set_root_path(self, root_path: Union[Path, str], force_override: bool = False):
-        """Set the root_path with conditions
-
-        The new root_path will only be set if it has no value.
-
-        if `root_path.is_dir()` is true `root_path.parent` is used
-
-        Parameters
-        ----------
-        root_path : str
-            new root_path
-        force_override : bool, optional
-            `True` wil ingore check conditionds and override value, by default `False`
-        """
-        if DEBUG_root_path:
-            print(f"root_path set = {hasattr(self, 'root_path')}")
-
-        if root_path is None:
-            if DEBUG_root_path:
-                print(f"root_path is None= {root_path}")
-            return
-
-        # if hasattr(self, "root_path") and not force_override:
-        if hasattr(self, "root_path"):
-            if DEBUG_root_path:
-                print(f"root_path already set")
-            if not force_override:
-                return
-            if DEBUG_root_path:
-                print(f"root_path force_override")
-
-        # self.root_path = self._make_absolute_path(root_path)
-        self.root_path = Path(root_path)
-
-        _was_file = self.root_path.is_dir()
-
-        if not self.root_path.is_dir():
-            self.root_path = self.root_path.parent
-
-        if DEBUG_root_path:
-            print(f"root_path = {self.root_path}")
-            print(f"root_path was dir: {_was_file}")
-            print(f"root_path is dir: {self.root_path.is_dir()}")
-            print(f"root_path set = {hasattr(self, 'root_path')}")
-
-    ##################################################
-    # Section Handling
-    ##################################################
-    def _update_sections_all(self, parent_section: Badger_Config_Section = None, root_path: Union[Path, str] = None):
-        """Update all child sections
-
-        Updates this instances `roo_path` and `parent_section`,
-        then updates all child sections.
-
-        This is used to propagate `root_path` and `parent_section`
-
-        WARNING this might not work on dynamicly defined sub sections
-
-
-        Parameters
-        ----------
-        parent_section : Badger_Config_Section, optional
-            reference to the parent section instance, by default None
-        root_path : Union[Path, str], optional
-            new root_path, by default None
-        """
-
-        self._update_section(
-            parent_section=parent_section,
-            root_path=root_path
-        )
-
-        self._call_on_sections(
-            self._update_sections_all.__name__,
-            parent_section=self,
-            root_path=self.root_path
-            # root_path="path"
-        )
-
-    def _update_section(self, parent_section: Badger_Config_Section = None, root_path: Union[Path, str] = None):
-        """Update this section
-
-        set's the parent section, root path and collects all child sections
-
-        Parameters
-        ----------
-        parent_section : Badger_Config_Section, optional
-            reference to the parent section instance, by default None
-        root_path : Union[Path, str], optional
-            new root_path, by default None
-        """
-
-        self.parent_section = parent_section
-        self._set_root_path(root_path=root_path)
-
-        # print(f"DEBUG UPDATE SECTIONS: {self}")
-        sections = []
-        # TODO  check if this can work with dynamicly added sub sections
-        class_vars = self._get_instance_vars()
-
-        # print("\n")
-        # print("#"*30)
-        # print(self)
-        # print("#"*30)
-        # print("\n")
-        for key, value in class_vars.items():
-            # print()
-            # print(f"DEBUG SECTIONS: \nvar name: {key}\nvar value: {value}")
-            if isinstance(value, Badger_Config_Section) and key != "parent_section":
-                # print("\tSection: ", key, value)
-                sections.append(value)
-
-        self._sections = sections
-
-    def _call_on_sections(self, func_name: str, *args, **kwargs):
-        """Call a function on all child sections
-
-        `*args` and `**kwargs` are directly handed to the function
-
-        Parameters
-        ----------
-        func_name : str
-            Name of a class function
-        """
-        if isinstance(self._sections, list):
-            for section in self._sections:
-                if DEBUG__call_on_sections:
-                    print(
-                        f"\n\nDEBUG CALL ON ALL SECTIONS: \n"
-                        f"section: {section}, \n"
-                        f"function: {func_name}\n"
-                        f"args: {args}\n"
-                        f"kwargs: {kwargs}"
-                    )
-                try:
-                    func = getattr(section, func_name)
-                    func(*args, **kwargs)
-                except NotImplementedError:
-                    print(
-                        f"NotImplementedError: \nFunction -> {func_name}\nsection->{section}\n")
-                    pass
-
-    ##################################################
-    # Data pre/post processing
-    ##################################################
-    def _pre_process_all(self):
-        """Pre-process all child sections
-        """
-        try:
-            self.pre_process()
-        except NotImplementedError:
-            pass
-
-        self._call_on_sections(self._pre_process_all.__name__)
-
-    def pre_process(self):
-        """pre Process data if needed
-
-        Gets called before `safe()` to pre process config values.\n
-        usefull to make paths relative in the config file but absolute in code.\n
-        Can also be used to de-/serialize a custom data type/ class.
-        """
-
-        raise NotImplementedError("Subclass has not overriden function")
-
-    def _post_process_all(self):
-        """Post-process all child sections
-        """
-        try:
-            self.post_process()
-        except NotImplementedError:
-            pass
-
-        self._call_on_sections(self._post_process_all.__name__)
-
-    def post_process(self):
-        """Post Process data if needed
-
-        Gets called after `load()` to post process config values.\n
-        For example make relative paths absolute.
-        usefull to make paths relative in the config file but absolute in code.\n
-        Can also be used to de-/serialize a custom data type/ class.
-        """
-        raise NotImplementedError("Subclass has not overriden function")
-
+class _Config_data_handler(ABC):
     ##################################################
     # Instance Deserialization
     ##################################################
@@ -844,6 +506,346 @@ class Badger_Config_Section(ABC):
 
         print(f"Native type {type(var_native)}")
         raise TypeError(f"Unsupported target type: '{target_type}'")
+
+
+class Badger_Config_Section(_Config_data_handler):
+    """ Abstract class of a config section
+
+    Create a child class inhereting this to configure a new section in the config file
+
+    native types:       str, int, float, bool, None
+    supported types:    datetime.datetime, pathlib.Path, Badger_Config_Section
+    supported collections: dict, list
+    """
+
+    root_path: Path
+    """Absolute Project/Section root path"""
+
+    section_name: str = "DEFAULT"
+
+    _sections: list[Badger_Config_Section]
+    parent_section: Badger_Config_Section
+
+    def __init__(self, root_path: Union[Path, str] = None, section_name: str = None) -> None:
+        """ !! DO NOT OVERWRITE !!
+
+        overwriting init will break shit, use the `setup()` function instead
+
+        Parameters
+        ----------
+        root_path : Union[Path, str], optional
+            root path of this section, by default root_path of parent section
+
+        section_name : str, optional
+            Name of this section, by default name of the var asinged to in th parent section\n
+            base example:\n
+            ` my_section = Badger_Config_Section()` -> section_name = "my_section"\n
+            override example:\n
+            ` my_section = Badger_Config_Section(section_name="otehr_section")` -> section_name = "otehr_section"
+        """
+        # section_name not empty string
+        if section_name is not None and section_name.strip():
+            self.section_name = section_name
+        else:
+            self.section_name = "DEFAULT"
+            pass
+
+        if DEBUG_init:
+            print()
+            print("-"*30)
+            print(f"setup Badger_Config_Section")
+            print("-"*30)
+            print(self)
+            print(f"self.section_name = {self.section_name}")
+            print(f"section_name = {section_name}")
+            print()
+        self._set_root_path(root_path=root_path)
+        if DEBUG_init:
+            print("-"*30)
+            print()
+
+        try:
+            self.setup()
+        except NotImplementedError as e:
+            pass
+
+    def setup(self):
+        """Prepare instance and set config propertys to default values 
+
+        use this instead of overwriting `__init__()`
+
+        Gets called after `__init__`
+        """
+        raise NotImplementedError("Subclass has not overriden function")
+
+    def __repr__(self) -> str:
+        return f"<Badger_Config_Section: {self.section_name} -- {self.__class__.__name__}>"
+
+    def _make_absolute_path(self, path: Union[Path, str]) -> Path:
+        """Turn into absolute Path
+
+        Parameters
+        ----------
+        path : Union[Path, str]
+            the (relative) path
+
+        Returns
+        -------
+        Path
+            absolute path using `Path(path).resolve`
+
+        Raises
+        ------
+        TypeError
+            if `path` is not of type `str` or `pathlib.Path`
+        """
+        # if isinstance(path, Path):
+        #     return path.resolve()
+
+        if isinstance(path, (str, Path)):
+            return Path(path).resolve()
+
+        raise TypeError(
+            "Only instances of 'str' and 'pathlib.Path' are supported")
+
+    def _check_name_set_and_not_default(self, var_name: str) -> bool:
+        """Check class var has non default value
+
+        Parameters
+        ----------
+        var_name : str
+            Name of the class var
+
+        Returns
+        -------
+        bool
+            `True` when value set and not default
+        """
+
+        # is set
+        if hasattr(self, var_name):
+            if getattr(self, var_name) != getattr(self.__class__, var_name):
+                return True  # Is not class default
+        return False
+
+    def _set_section_name(self, section_name: str, force_override: bool = False):
+        """Set the section name with conditions
+
+        The new section name will only be set if it wasn't set previously.\n
+        In other words if `section_name` is not set or has the class default value
+
+        Parameters
+        ----------
+        section_name : str
+            desired section name
+        force_override : bool, optional
+            `True` wil ingore check conditionds and override value, by default `False`
+        """
+
+        print(f"section_name set = {hasattr(self, 'section_name')}")
+
+        if section_name is None:
+            print(f"section_name is None = {section_name}")
+            return
+
+        # if hasattr(self, "section_name") and not force_override:
+        # if hasattr(self, "section_name"):
+        if self._check_name_set_and_not_default('section_name'):
+            print(
+                f"section_name already set: {self.section_name}, {self.__class__.section_name}")
+            if not force_override:
+                return
+            print(f"section_name force_override")
+
+        self.section_name = section_name
+
+        print(f"section_name = {self.section_name}")
+        print(f"section_name set = {hasattr(self, 'section_name')}")
+
+    def _set_root_path(self, root_path: Union[Path, str], force_override: bool = False):
+        """Set the root_path with conditions
+
+        The new root_path will only be set if it has no value.
+
+        if `root_path.is_dir()` is true `root_path.parent` is used
+
+        Parameters
+        ----------
+        root_path : str
+            new root_path
+        force_override : bool, optional
+            `True` wil ingore check conditionds and override value, by default `False`
+        """
+        if DEBUG_root_path:
+            print(f"root_path set = {hasattr(self, 'root_path')}")
+
+        if root_path is None:
+            if DEBUG_root_path:
+                print(f"root_path is None= {root_path}")
+            return
+
+        # if hasattr(self, "root_path") and not force_override:
+        if hasattr(self, "root_path"):
+            if DEBUG_root_path:
+                print(f"root_path already set")
+            if not force_override:
+                return
+            if DEBUG_root_path:
+                print(f"root_path force_override")
+
+        # self.root_path = self._make_absolute_path(root_path)
+        self.root_path = Path(root_path)
+
+        _was_file = self.root_path.is_dir()
+
+        if not self.root_path.is_dir():
+            self.root_path = self.root_path.parent
+
+        if DEBUG_root_path:
+            print(f"root_path = {self.root_path}")
+            print(f"root_path was dir: {_was_file}")
+            print(f"root_path is dir: {self.root_path.is_dir()}")
+            print(f"root_path set = {hasattr(self, 'root_path')}")
+
+    ##################################################
+    # Section Handling
+    ##################################################
+    def _update_sections_all(self, parent_section: Badger_Config_Section = None, root_path: Union[Path, str] = None):
+        """Update all child sections
+
+        Updates this instances `roo_path` and `parent_section`,
+        then updates all child sections.
+
+        This is used to propagate `root_path` and `parent_section`
+
+        WARNING this might not work on dynamicly defined sub sections
+
+
+        Parameters
+        ----------
+        parent_section : Badger_Config_Section, optional
+            reference to the parent section instance, by default None
+        root_path : Union[Path, str], optional
+            new root_path, by default None
+        """
+
+        self._update_section(
+            parent_section=parent_section,
+            root_path=root_path
+        )
+
+        self._call_on_sections(
+            self._update_sections_all.__name__,
+            parent_section=self,
+            root_path=self.root_path
+            # root_path="path"
+        )
+
+    def _update_section(self, parent_section: Badger_Config_Section = None, root_path: Union[Path, str] = None):
+        """Update this section
+
+        set's the parent section, root path and collects all child sections
+
+        Parameters
+        ----------
+        parent_section : Badger_Config_Section, optional
+            reference to the parent section instance, by default None
+        root_path : Union[Path, str], optional
+            new root_path, by default None
+        """
+
+        self.parent_section = parent_section
+        self._set_root_path(root_path=root_path)
+
+        # print(f"DEBUG UPDATE SECTIONS: {self}")
+        sections = []
+        # TODO  check if this can work with dynamicly added sub sections
+        class_vars = self._get_instance_vars()
+
+        # print("\n")
+        # print("#"*30)
+        # print(self)
+        # print("#"*30)
+        # print("\n")
+        for key, value in class_vars.items():
+            # print()
+            # print(f"DEBUG SECTIONS: \nvar name: {key}\nvar value: {value}")
+            if isinstance(value, Badger_Config_Section) and key != "parent_section":
+                # print("\tSection: ", key, value)
+                sections.append(value)
+
+        self._sections = sections
+
+    def _call_on_sections(self, func_name: str, *args, **kwargs):
+        """Call a function on all child sections
+
+        `*args` and `**kwargs` are directly handed to the function
+
+        Parameters
+        ----------
+        func_name : str
+            Name of a class function
+        """
+        if isinstance(self._sections, list):
+            for section in self._sections:
+                if DEBUG__call_on_sections:
+                    print(
+                        f"\n\nDEBUG CALL ON ALL SECTIONS: \n"
+                        f"section: {section}, \n"
+                        f"function: {func_name}\n"
+                        f"args: {args}\n"
+                        f"kwargs: {kwargs}"
+                    )
+                try:
+                    func = getattr(section, func_name)
+                    func(*args, **kwargs)
+                except NotImplementedError:
+                    print(
+                        f"NotImplementedError: \nFunction -> {func_name}\nsection->{section}\n")
+                    pass
+
+    ##################################################
+    # Data pre/post processing
+    ##################################################
+    def _pre_process_all(self):
+        """Pre-process all child sections
+        """
+        try:
+            self.pre_process()
+        except NotImplementedError:
+            pass
+
+        self._call_on_sections(self._pre_process_all.__name__)
+
+    def pre_process(self):
+        """pre Process data if needed
+
+        Gets called before `safe()` to pre process config values.\n
+        usefull to make paths relative in the config file but absolute in code.\n
+        Can also be used to de-/serialize a custom data type/ class.
+        """
+
+        raise NotImplementedError("Subclass has not overriden function")
+
+    def _post_process_all(self):
+        """Post-process all child sections
+        """
+        try:
+            self.post_process()
+        except NotImplementedError:
+            pass
+
+        self._call_on_sections(self._post_process_all.__name__)
+
+    def post_process(self):
+        """Post Process data if needed
+
+        Gets called after `load()` to post process config values.\n
+        For example make relative paths absolute.
+        usefull to make paths relative in the config file but absolute in code.\n
+        Can also be used to de-/serialize a custom data type/ class.
+        """
+        raise NotImplementedError("Subclass has not overriden function")
 
 
 class Badger_Config_Base(Badger_Config_Section):
