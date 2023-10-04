@@ -15,7 +15,7 @@ pip install badger-config-handler
 
 1. settings are declared in the class and defined in [setup()](#setup-1)
 2. settings **MUST** be declared with a type hint.  example: `my_var: int`
-3. settings can only be of [allowed data type](allowed-data-types)
+3. settings can only be of [allowed data type](#allowed-data-types)
 4. settings not declared in code are ignored in the config file (and are removed on the next save, same for commented out settings)
 5. settings can be `None` if they are set to null in the config, regardles of the type hint
 6. settings without a default value set in [setup()](#setup-1) are not saved to the config file, but they can still be set from the config file
