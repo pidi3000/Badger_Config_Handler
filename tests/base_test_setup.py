@@ -45,12 +45,19 @@ class Base_Test():
             my_int: int
             my_none: str
             
+            my_list: list
+            my_dict: dict
+            
             sub_section: Sub_Section
 
             def setup(self):
                 self.my_var = "test"
                 self.my_int = 50
                 self.my_none = None
+                
+                
+                self.my_list = [1, 2]
+                self.my_dict = {"first": "derp", "2": 2.5}
                 
                 self.sub_section = Sub_Section(section_name="sub")
 
