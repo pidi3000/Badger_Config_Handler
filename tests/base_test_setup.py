@@ -44,13 +44,16 @@ class Base_Test():
             my_var: str
             my_int: int
             my_none: str
+            
+            sub_section: Sub_Section
 
             def setup(self):
                 self.my_var = "test"
                 self.my_int = 50
                 self.my_none = None
+                
+                self.sub_section = Sub_Section(section_name="sub")
 
-            sub_section = Sub_Section(section_name="sub")
 
         if config_file_path is None:
             config_file_path = self.TEST_CONFIG_PATH
@@ -118,8 +121,8 @@ class Base_Test():
 
         mid_conf = self.get_config_dict(conf)
 
-        conf.load()
         conf = self.get_test_config()
+        conf.load()
 
         end_conf = self.get_config_dict(conf)
 
