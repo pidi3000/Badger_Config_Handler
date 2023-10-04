@@ -11,7 +11,54 @@ Install from [PyPi](https://pypi.org/project/badger-config-handler/)
 pip install badger-config-handler
 ```
 
-# Data types
+# Rules and limitations
+
+1. settings are declared in the class and defined in [setup()](#setup-1)
+2. settings **MUST** be declared with a type hint.  example: `my_var: int`
+3. settings can only be of [allowed data type](allowed-data-types)
+4. settings not declared in code are ignored in the config file (and are removed on the next save, same for commented out settings)
+5. settings can be `None` if they are set to null in the config, regardles of the type hint
+6. settings without a default value set in [setup()](#setup-1) are not saved to the config file, but they can still be set from the config file
+
+
+
+# Example config
+
+``` Python
+class Sub_Section(Badger_Config_Section):
+    section_var: str
+    section_int: int
+
+    def setup(self):
+        self.section_var = "section"
+        self.section_int = 20
+
+class base(Badger_Config_Base):
+    my_var: str
+    my_int: int
+    my_none: str
+    
+    sub_section: Sub_Section # NOT Badger_Config_Section
+
+    def setup(self):
+        self.my_var = "test"
+        self.my_int = 50
+        self.my_none = None
+        
+        self.sub_section = Sub_Section(section_name="sub")
+
+config = My_Base(
+    config_file_path="path/to/config.json",
+    root_path="path/to/project/root"
+)
+
+config.save()
+config.load()
+config.sync()
+```
+
+
+# Allowed data types
 
 ## native
 the file handlers have native support for these types and are used as is,

@@ -37,6 +37,14 @@ def test_load_config():
 def test_compare_config():
     Base_Test(TEST_CONFIG_NAME).test_compare_config()
 
+
+def test_null_default_handled_right():
+    Base_Test(TEST_CONFIG_NAME).test_null_default_handled_right()
+
 # test sync
 
 # ? test unsupported data type ?
+
+
+if __name__ == "__main__":
+    test_null_default_handled_right()

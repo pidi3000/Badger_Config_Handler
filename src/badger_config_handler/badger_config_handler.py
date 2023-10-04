@@ -444,13 +444,42 @@ class Badger_Config_Section(ABC):
             # print(f"Key: {s_name}, value: {s_value}")
             # a TODO check dict keys as well (make it optional)
 
-            if not safe_load or hasattr(self, s_name):
+            # if not safe_load or hasattr(self, s_name):
+            if hasattr(self, s_name):
                 if DEBUG_from_dict:
                     print()
-                    print(f"Key: {s_name}, value: {s_value}")
+                    print("+"*50)
+                    print(f"Key: {s_name} \tvalue: {s_value}")
 
-                class_var = getattr(self, s_name, None)
-                target_type = type(class_var) if s_value is not None else None
+                    print()
+                    print("Annotations start")
+                    print("all: ", self.__annotations__)
+
+                target_type = self.__annotations__.get(
+                    s_name, BADGER_NONE)
+
+                print()
+
+                if target_type is BADGER_NONE:
+                    raise TypeError(
+                        f"No type hinting set for setting: {s_name}")
+
+                if s_value is not None:
+                    # create instance and then get the type
+                    # is needed in cases where lists or dicts have content annotated
+                    # like this: my_var: list[int]
+                    # turn annotation into class
+                    target_type = type(target_type())
+
+                else:
+                    target_type = None
+
+                if DEBUG_from_dict:
+                    # print("post: var:", add_padding(target_type, 20),
+                    #     "type:", type(target_type))
+
+                    print("target type: ", target_type)
+                    print()
 
                 s_value = self._native_to_var(
                     var_native=s_value,
@@ -632,6 +661,7 @@ class Badger_Config_Section(ABC):
             Either `var` of `type` must be set
         """
         native_types = (str, int, float, bool)  # and None
+
         if var is not BADGER_NONE:
             # if var is None:
             #     return True
