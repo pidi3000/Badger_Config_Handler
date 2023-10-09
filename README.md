@@ -19,6 +19,7 @@ pip install badger-config-handler
 4. settings not declared in code are ignored in the config file (and are removed on the next save, same for commented out settings)
 5. settings can be `None` if they are set to null in the config, regardles of the type hint
 6. settings without a default value set in [setup()](#setup-1) are not saved to the config file, but they can still be set from the config file
+7. The [root_path](#root_path) and [parent_section](#parent_section) propertys are NOT available in [setup()](#setup-1)
 
 
 
@@ -185,7 +186,7 @@ Replacement for `__init__()`
 
 should be used to set default values
 
-NOTE: the property [parent_section](#parent_section) is NOT available during this
+NOTE: the propertys [root_path](#root_path) and [parent_section](#parent_section) are NOT available during this
 
 ---
 
