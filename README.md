@@ -135,7 +135,13 @@ see [Config_Section.setup()](#setup-1)
 ---
 
 ### save()
-Save config to file
+Saves config to file
+
+steps:
+
+1. [pre_process()](#pre_process)
+2. save to file
+3. [post_process()](#post_process)
 
 ---
 
@@ -193,6 +199,8 @@ NOTE: the propertys [root_path](#root_path) and [parent_section](#parent_section
 ### pre_process()
 Pre process values before [save()](#save)
 
+Warning: the function should be written in a way that running it multiple times in a row doesn't cause problems
+
 useful for:
 - converting unsupported data type to a [native](#native) or [supported](#supported) type
 - converting absolute paths to relative (keeps them short in the config file)
@@ -201,6 +209,8 @@ useful for:
 
 ### post_process()
 post process values after [load()](#load)
+
+Warning: the function should be written in a way that running it multiple times in a row doesn't cause problems
 
 useful for:
 - creating unsupported data type from [native](#native) or [supported](#supported) type
