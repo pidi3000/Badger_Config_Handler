@@ -7,7 +7,7 @@ name = "badger-config-handler"
 version = "0.2.1"
 description = "Config handler for code-declared and file-defined settings."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.7"
 # license = {file = "LICENSE"}
 keywords = ["settings handler", "config handler", "json", "yaml"]
 authors = [
