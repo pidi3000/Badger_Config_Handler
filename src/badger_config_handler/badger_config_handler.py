@@ -823,6 +823,23 @@ class Badger_Config_Section(_Config_data_handler):
     ##################################################
     # Path support functions
     ##################################################
+    def _is_relative_to(self, absolute_path: Path, base_path: Path):
+        """back port of pathlib.Path.is_relative_to
+        
+        was introduce in python v 3.9
+        """
+
+        try:
+            return absolute_path.is_relative_to(base_path)
+        except AttributeError as ae:
+            pass
+
+        try:
+            absolute_path.relative_to(base_path)
+            return True
+        except ValueError:
+            return False
+
     def make_absolute_to_root(self, relative_path: Path, enforce_in_root: bool = True) -> Path:
         """Make path absolute using root_path
 
@@ -850,7 +867,8 @@ class Badger_Config_Section(_Config_data_handler):
 
         absolute_path = self.root_path.joinpath(relative_path)
         temp_resolved_path = absolute_path.resolve()
-        if enforce_in_root and not temp_resolved_path.is_relative_to(self.root_path):
+        # if enforce_in_root and not temp_resolved_path.is_relative_to(self.root_path):
+        if enforce_in_root and not self._is_relative_to(temp_resolved_path, self.root_path):
             raise ValueError("relative_path is outside root_path")
 
         return absolute_path
@@ -875,7 +893,8 @@ class Badger_Config_Section(_Config_data_handler):
             If `absolute_path` is not relative root_path
         """
         if absolute_path.is_absolute():
-            if absolute_path.is_relative_to(self.root_path):
+            # if absolute_path.is_relative_to(self.root_path):
+            if self._is_relative_to(absolute_path, self.root_path):
                 relative_path = absolute_path.relative_to(self.root_path)
 
                 return relative_path
