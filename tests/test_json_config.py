@@ -27,8 +27,11 @@ def test_null_default_handled_right():
 
 # test sync
 
+def test_path_support_functions():
+    Base_Test(TEST_CONFIG_NAME).test_path_support_functions()
+
 # ? test unsupported data type ?
 
 
 if __name__ == "__main__":
-    test_null_default_handled_right()
+    test_path_support_functions()
