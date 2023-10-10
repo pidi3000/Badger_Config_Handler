@@ -26,13 +26,31 @@ pip install badger-config-handler
 # Example config
 
 ``` Python
+from pathlib import Path
+from badger_config_handler import Badger_Config_Base, Badger_Config_Section
+
 class Sub_Section(Badger_Config_Section):
     section_var: str
-    section_int: int
+    section_float: float
+
+    section_path: Path
 
     def setup(self):
         self.section_var = "section"
-        self.section_int = 20
+        self.section_float = 20.3
+        self.section_path = "relative/sub/path"
+
+    def post_process(self):
+        self.section_path = self.make_absolute_to_root(
+            relative_path = self.section_path, 
+            enforce_in_root = True
+        )# becomes "path/to/project/root/relative/sub/path"
+
+    def pre_process(self):
+        self.section_path = self.make_relative_to_root(
+            absolute_path = self.section_path
+        )# turns back to "relative/sub/path"
+
 
 class base(Badger_Config_Base):
     my_var: str
@@ -202,8 +220,9 @@ Pre process values before [save()](#save)
 Warning: the function should be written in a way that running it multiple times in a row doesn't cause problems
 
 useful for:
+
 - converting unsupported data type to a [native](#native) or [supported](#supported) type
-- converting absolute paths to relative (keeps them short in the config file)
+- converting [absolute paths to relative](#make_relative_to_rootpath) (keeps them short in the config file)
 
 ---
 
@@ -213,8 +232,37 @@ post process values after [load()](#load)
 Warning: the function should be written in a way that running it multiple times in a row doesn't cause problems
 
 useful for:
+
 - creating unsupported data type from [native](#native) or [supported](#supported) type
-- converting relative paths to absolute (keeps them short in the config file)
+- converting [relative paths to absolute](#make_absolute_to_rootpath-bool) (keeps them short in the config file)
+
+---
+
+### make_absolute_to_root(Path, bool)
+
+Help function to make a setting Path absolute to the sections [root_path](#root_path)
+
+Paths settings can escape the root_path using something like `../../secrets.json`.<br>
+To avoid that use `enforce_in_root`.
+
+**Parameters:**
+
+| param             | type | required | default |
+|-------------------|------|----------|---------|
+| relative_path     | Path | x        |         |
+| enforce_in_root   | bool |          | True    |
+
+---
+
+### make_relative_to_root(Path)
+
+Help function to make a setting Path relative to the sections [root_path](#root_path)
+
+**Parameters:**
+
+| param             | type | required | default |
+|-------------------|------|----------|---------|
+| absolute_path     | Path | x        |         |
 
 ---
 
