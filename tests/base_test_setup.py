@@ -44,23 +44,21 @@ class Base_Test():
             my_var: str
             my_int: int
             my_none: str
-            
+
             my_list: list
             my_dict: dict
-            
+
             sub_section: Sub_Section
 
             def setup(self):
                 self.my_var = "test"
                 self.my_int = 50
                 self.my_none = None
-                
-                
+
                 self.my_list = [1, 2]
                 self.my_dict = {"first": "derp", "2": 2.5}
-                
-                self.sub_section = Sub_Section(section_name="sub")
 
+                self.sub_section = Sub_Section(section_name="sub")
 
         if config_file_path is None:
             config_file_path = self.TEST_CONFIG_PATH
@@ -148,6 +146,67 @@ class Base_Test():
         assert start_conf != mid_conf
         assert mid_conf == end_conf
         assert start_conf != end_conf
+
+    def test_path_support_functions(self):
+        self.setup_data_dir(remove_config_file=True)
+
+        class Base(Badger_Config_Base):
+            my_path: Path
+
+            def setup(self):
+                self.my_path = Path("sub/path")
+
+            def post_process(self):
+                self.my_path = self.make_absolute_to_root(
+                    relative_path = self.my_path, 
+                    enforce_in_root = True
+                )
+
+            def pre_process(self):
+                self.my_path = self.make_relative_to_root(
+                    absolute_path = self.my_path
+                )
+
+        conf = Base(
+            config_file_path=self.TEST_CONFIG_PATH,
+            root_path=self.TEST_DATA_DIR
+        )
+
+        conf.sync()
+        start_path = conf.my_path
+
+        conf.pre_process()
+
+        mid_path = conf.my_path
+
+        conf.post_process()
+
+        mid_path2 = conf.my_path
+
+        conf.post_process()
+
+        end_path = conf.my_path
+
+        print()
+        print("start_conf")
+        print(start_path)
+
+        print()
+        print("mid_conf")
+        print(mid_path)
+
+        print()
+        print("mid_path2")
+        print(mid_path2)
+
+        print()
+        print("end_conf")
+        print(end_path)
+
+        assert start_path != mid_path
+        assert mid_path != end_path
+        assert start_path == end_path
+        assert mid_path2 == end_path
 
     # test sync
 
