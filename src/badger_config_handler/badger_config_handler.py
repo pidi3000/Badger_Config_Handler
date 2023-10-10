@@ -581,33 +581,6 @@ class Badger_Config_Section(_Config_data_handler):
     def __repr__(self) -> str:
         return f"<Badger_Config_Section: {self.section_name} -- {self.__class__.__name__}>"
 
-    def _make_absolute_path(self, path: Union[Path, str]) -> Path:
-        """Turn into absolute Path
-
-        Parameters
-        ----------
-        path : Union[Path, str]
-            the (relative) path
-
-        Returns
-        -------
-        Path
-            absolute path using `Path(path).resolve`
-
-        Raises
-        ------
-        TypeError
-            if `path` is not of type `str` or `pathlib.Path`
-        """
-        # if isinstance(path, Path):
-        #     return path.resolve()
-
-        if isinstance(path, (str, Path)):
-            return Path(path).resolve()
-
-        raise TypeError(
-            "Only instances of 'str' and 'pathlib.Path' are supported")
-
     def _check_name_set_and_not_default(self, var_name: str) -> bool:
         """Check class var has non default value
 
@@ -847,6 +820,70 @@ class Badger_Config_Section(_Config_data_handler):
         """
         raise NotImplementedError("Subclass has not overriden function")
 
+    ##################################################
+    # Path support functions
+    ##################################################
+    def make_absolute_to_root(self, relative_path: Path, enforce_in_root: bool = True) -> Path:
+        """Make path absolute using root_path
+
+        Parameters
+        ----------
+        relative_path : Path
+            a relative Path
+        enforce_in_root : bool, optional
+            by default True,\n
+            ensure the absolute Path is a sub directory of root_path
+
+        Returns
+        -------
+        Path
+            Abolute path of relative_path joined with root_path\n
+            if `relative_path.is_absolute() == True` relative_path is returned as is
+
+        Raises
+        ------
+        ValueError
+            if `enforce_in_root` is `True` and the resolved absolute path is NOT a sub directory of root_path
+        """
+        if relative_path.is_absolute():
+            return relative_path
+
+        absolute_path = self.root_path.joinpath(relative_path)
+        temp_resolved_path = absolute_path.resolve()
+        if enforce_in_root and not temp_resolved_path.is_relative_to(self.root_path):
+            raise ValueError("relative_path is outside root_path")
+
+        return absolute_path
+
+    def make_relative_to_root(self, absolute_path: Path) -> Path:
+        """Make absolute_path relative to root_path
+
+        Parameters
+        ----------
+        absolute_path : Path
+            The absolute Path, must be inside root_path
+
+        Returns
+        -------
+        Path
+            if `absolute_path` is relative to root_path -> new path relative to root_path\n
+            if `absolute_path` is a relative Path -> absolute_path as is
+
+        Raises
+        ------
+        ValueError
+            If `absolute_path` is not relative root_path
+        """
+        if absolute_path.is_absolute():
+            if absolute_path.is_relative_to(self.root_path):
+                relative_path = absolute_path.relative_to(self.root_path)
+
+                return relative_path
+
+            raise ValueError("absolute_path is not relative to root_path")
+
+        return absolute_path
+
 
 class Badger_Config_Base(Badger_Config_Section):
     """Config Base class that handles file read/write 
@@ -881,10 +918,10 @@ class Badger_Config_Base(Badger_Config_Section):
         section_name : str, optional
             Section Name of values not in a sub section, by default "DEFAULT"
         """
-        root_path = self._make_absolute_path(root_path)
+        root_path = Path(root_path).resolve()
         super().__init__(root_path=root_path, section_name=section_name)
 
-        self._config_file_path = self._make_absolute_path(config_file_path)
+        self._config_file_path = Path(config_file_path).resolve()
 
         self._set_file_type()
 
