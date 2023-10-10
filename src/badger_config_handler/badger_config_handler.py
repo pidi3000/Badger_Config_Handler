@@ -940,6 +940,8 @@ class Badger_Config_Base(Badger_Config_Section):
         data = self.to_dict()
         self._save_to_file(data=data)
 
+        self._post_process_all()
+
         if DEBUG_save:
             print("-"*50)
             print("DEBUG END SAVE")
