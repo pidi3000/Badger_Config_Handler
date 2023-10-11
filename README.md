@@ -181,15 +181,31 @@ steps:
 
 Load config from file
 
+**Parameters:**
+
+| param                       | type | required     | default | Note                            |
+|-----------------------------|------|--------------|---------|---------------------------------|
+| auto_create                 | bool |              | True    | Create config file if not found |
+| safe_load [see](#from_dict) | bool |              | True    |  ! UNTESTED !                   |
+
 ---
 
 #### sync()
 
 Sync config with file
 
-runs: `load()` - `save()` - `load()`
+runs:
+
+1. `load()`
+    - if file exists then continue else stop here
+2. `save()`
+3. `load()`
 
 this adds new config fields to the file or removes old ones
+
+**Parameters:**
+
+same as [load()](#load)
 
 ---
 ---
