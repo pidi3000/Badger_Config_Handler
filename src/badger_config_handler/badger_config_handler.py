@@ -1022,7 +1022,7 @@ class Badger_Config_Base(Badger_Config_Section):
     ##################################################
     # File loading
     ##################################################
-    def load(self, safe_load: bool = True, auto_craete: bool = True) -> bool:
+    def load(self, safe_load: bool = True, auto_create: bool = True) -> bool:
         """Load settings from file
 
         Overrides the default values with the one set in file, \n
@@ -1040,20 +1040,20 @@ class Badger_Config_Base(Badger_Config_Section):
             True -> Only variables that already exist in the class are set (uses `hasattr`)\n
             False -> New variables can be set from config file
 
-        auto_craete : bool, optional
+        auto_create : bool, optional
             by default True\n
             if config file not found auto create it
 
         Returns
         -------
         bool
-            if auto_craete -> True, a new config file was created
+            if auto_create -> True, a new config file was created
 
 
         Raises
         ------
         FileNotFoundError
-            if auto_craete -> False and config file was not found 
+            if auto_create -> False and config file was not found 
 
         """
         if DEBUG_load:
@@ -1061,7 +1061,7 @@ class Badger_Config_Base(Badger_Config_Section):
             print("DEBUG START LOAD")
             print("-"*50)
 
-        data, created_new = self._load_from_file(auto_craete=auto_craete)
+        data, created_new = self._load_from_file(auto_create=auto_create)
         self.from_dict(data=data, safe_load=safe_load)
 
         # try:
@@ -1087,12 +1087,12 @@ class Badger_Config_Base(Badger_Config_Section):
 
         return created_new
 
-    def _load_from_file(self, attempt_count=0, auto_craete: bool = True):
+    def _load_from_file(self, attempt_count=0, auto_create: bool = True):
         """Load raw data from config file
 
         Parameters
         ----------            
-        auto_craete : bool, optional
+        auto_create : bool, optional
             by default True\n
             if config file not found auto create it
         """
@@ -1104,7 +1104,7 @@ class Badger_Config_Base(Badger_Config_Section):
         created_new = False
 
         if not self._config_file_path.exists():
-            if auto_craete:
+            if auto_create:
                 self.save()
                 created_new = True
             else:
@@ -1144,7 +1144,7 @@ class Badger_Config_Base(Badger_Config_Section):
 
         return data, created_new
 
-    def sync(self, safe_load: bool = True, auto_craete: bool = True):
+    def sync(self, safe_load: bool = True, auto_create: bool = True):
         """Add new variables to existing config file
 
         Same as running `load()` then `safe()` then `load()`\n
@@ -1154,21 +1154,21 @@ class Badger_Config_Base(Badger_Config_Section):
         safe_load : bool, optional
             see `load()` for more details, by default True
 
-        auto_craete : bool, optional
+        auto_create : bool, optional
             by default True\n
             if config file not found auto create it
 
         Returns
         -------
         bool
-            if auto_craete -> True, a new config file was created
+            if auto_create -> True, a new config file was created
 
         Raises
         ------
         FileNotFoundError
-            if auto_craete -> False and config file was not found 
+            if auto_create -> False and config file was not found 
         """
-        created_new = self.load(safe_load=safe_load, auto_craete=auto_craete)
+        created_new = self.load(safe_load=safe_load, auto_create=auto_create)
 
         if not created_new:
             self.save()

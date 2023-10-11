@@ -151,7 +151,7 @@ class Base_Test():
         conf = self.get_test_config()
 
         with pytest.raises(FileNotFoundError) as e_info:
-            conf.sync(auto_craete=False)
+            conf.sync(auto_create=False)
 
     ##################################################
     # test cases where config file exists
