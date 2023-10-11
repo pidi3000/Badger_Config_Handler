@@ -1,7 +1,8 @@
 
+import pytest
 from pathlib import Path
-import sys
 from typing import Union
+import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent.joinpath("src")))
 
@@ -11,25 +12,37 @@ if True:
 
 class Base_Test():
     TEST_DATA_DIR = Path(__file__).parent.joinpath("data")
-    TEST_CONFIG_PATH: Path
-    # print(TEST_DATA_DIR)
+    config_file_name: str = "config"
+    # TEST_CONFIG_PATH: Path = TEST_DATA_DIR.joinpath(config_file_name)
 
-    def __init__(self, config_file_name: str) -> None:
+    @pytest.mark.dependency(name="dependecies_present")
+    def test_dependecies_present(self):
+        assert self.ensure_dependencies_present()
+        
+    def ensure_dependencies_present(self):
+        """base test to ensure all dependecies are present
+        
+        overwrite in sub class if needed
+        
+        Return
+        ------
+        bool:
+            all dependencies present
+        tuple[bool, str]:
+            optional tuple with str for error messages
+            
         """
+        return True
 
-        Parameters
-        ----------
-        config_file_name : str
-            `config.json` or `config.yaml`
-        """
-        self.TEST_CONFIG_PATH = self.TEST_DATA_DIR.joinpath(config_file_name)
-
+    def get_test_config_path(self):
+        return self.TEST_DATA_DIR.joinpath(self.config_file_name)
+    
     def setup_data_dir(self, remove_config_file=True):
         self.TEST_DATA_DIR.mkdir(exist_ok=True)
 
         if remove_config_file:
-            if self.TEST_CONFIG_PATH.exists():
-                self.TEST_CONFIG_PATH.unlink()
+            if self.get_test_config_path().exists():
+                self.get_test_config_path().unlink()
 
     def get_test_config(self, config_file_path: Union[Path, str] = None) -> Badger_Config_Base:
         class Sub_Section(Badger_Config_Section):
@@ -61,7 +74,7 @@ class Base_Test():
                 self.sub_section = Sub_Section(section_name="sub")
 
         if config_file_path is None:
-            config_file_path = self.TEST_CONFIG_PATH
+            config_file_path = self.get_test_config_path()
 
         return base(config_file_path=config_file_path, root_path=self.TEST_DATA_DIR)
 
@@ -81,6 +94,7 @@ class Base_Test():
 
     ####################################################################################################
 
+    @pytest.mark.dependency(depends=["dependecies_present"])
     def test_save_config(self, ):
         self.setup_data_dir()
         conf = self.get_test_config()
@@ -90,6 +104,7 @@ class Base_Test():
     # test load from file
     ##################################################
 
+    @pytest.mark.dependency(depends=["dependecies_present"])
     def test_load_config(self, ):
         self.setup_data_dir()
         conf = self.get_test_config()
@@ -99,6 +114,7 @@ class Base_Test():
     # compare loaded data to original
     ##################################################
 
+    @pytest.mark.dependency(depends=["dependecies_present"])
     def test_compare_config(self, ):
         self.setup_data_dir()
         conf = self.get_test_config()
@@ -114,6 +130,7 @@ class Base_Test():
     # test default None values overwrite
     ##################################################
 
+    @pytest.mark.dependency(depends=["dependecies_present"])
     def test_null_default_handled_right(self):
         self.setup_data_dir()
         conf = self.get_test_config()
@@ -147,6 +164,7 @@ class Base_Test():
         assert mid_conf == end_conf
         assert start_conf != end_conf
 
+    @pytest.mark.dependency(depends=["dependecies_present"])
     def test_path_support_functions(self):
         self.setup_data_dir(remove_config_file=True)
 
@@ -158,17 +176,17 @@ class Base_Test():
 
             def post_process(self):
                 self.my_path = self.make_absolute_to_root(
-                    relative_path = self.my_path, 
-                    enforce_in_root = True
+                    relative_path=self.my_path,
+                    enforce_in_root=True
                 )
 
             def pre_process(self):
                 self.my_path = self.make_relative_to_root(
-                    absolute_path = self.my_path
+                    absolute_path=self.my_path
                 )
 
         conf = Base(
-            config_file_path=self.TEST_CONFIG_PATH,
+            config_file_path=self.get_test_config_path(),
             root_path=self.TEST_DATA_DIR
         )
 
