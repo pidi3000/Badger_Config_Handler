@@ -18,25 +18,25 @@ class Base_Test():
     @pytest.mark.dependency(name="dependecies_present")
     def test_dependecies_present(self):
         assert self.ensure_dependencies_present()
-        
+
     def ensure_dependencies_present(self):
         """base test to ensure all dependecies are present
-        
+
         overwrite in sub class if needed
-        
+
         Return
         ------
         bool:
             all dependencies present
         tuple[bool, str]:
             optional tuple with str for error messages
-            
+
         """
         return True
 
     def get_test_config_path(self):
         return self.TEST_DATA_DIR.joinpath(self.config_file_name)
-    
+
     def setup_data_dir(self, remove_config_file=True):
         self.TEST_DATA_DIR.mkdir(exist_ok=True)
 
@@ -94,15 +94,15 @@ class Base_Test():
 
     ####################################################################################################
 
-    @pytest.mark.dependency(depends=["dependecies_present"])
+    @pytest.mark.dependency(name="save_config", depends=["dependecies_present"])
     def test_save_config(self, ):
         self.setup_data_dir()
         conf = self.get_test_config()
         conf.save()
 
-    ##################################################
+    ####################################################################################################
     # test load from file
-    ##################################################
+    ####################################################################################################
 
     @pytest.mark.dependency(depends=["dependecies_present"])
     def test_load_config(self, ):
@@ -114,6 +114,7 @@ class Base_Test():
     # compare loaded data to original
     ##################################################
 
+    # TODO check
     @pytest.mark.dependency(depends=["dependecies_present"])
     def test_compare_config(self, ):
         self.setup_data_dir()
@@ -126,9 +127,51 @@ class Base_Test():
 
         assert start_conf == end_conf
 
+    ####################################################################################################
+    # test sync
+    ####################################################################################################
+
     ##################################################
+    # test cases where no config file was found
+    ##################################################
+    @pytest.mark.dependency(depends=["dependecies_present"])
+    def test_sync_no_file_create(self):
+        print(self.config_file_name)
+
+        self.setup_data_dir(remove_config_file=True)
+        conf = self.get_test_config()
+
+        assert conf.sync() == True
+
+    @pytest.mark.dependency(depends=["dependecies_present"])
+    def test_sync_no_file_error(self):
+        print(self.config_file_name)
+
+        self.setup_data_dir(remove_config_file=True)
+        conf = self.get_test_config()
+
+        with pytest.raises(FileNotFoundError) as e_info:
+            conf.sync(auto_create=False)
+
+    ##################################################
+    # test cases where config file exists
+    ##################################################
+    @pytest.mark.dependency(depends=["dependecies_present", "save_config"])
+    def test_sync_file_exist(self):
+        self.setup_data_dir(remove_config_file=True)
+
+        # Create a config file
+        conf = self.get_test_config()
+        conf.save()
+
+        ##############################
+        conf = self.get_test_config()
+
+        assert conf.sync() == False
+
+    ####################################################################################################
     # test default None values overwrite
-    ##################################################
+    ####################################################################################################
 
     @pytest.mark.dependency(depends=["dependecies_present"])
     def test_null_default_handled_right(self):
@@ -225,7 +268,5 @@ class Base_Test():
         assert mid_path != end_path
         assert start_path == end_path
         assert mid_path2 == end_path
-
-    # test sync
 
     # ? test unsupported data type ?
