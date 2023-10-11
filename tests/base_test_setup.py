@@ -131,9 +131,6 @@ class Base_Test():
     # test sync
     ####################################################################################################
 
-    class Test_Sync:
-        pass
-
     ##################################################
     # test cases where no config file was found
     ##################################################
@@ -162,11 +159,11 @@ class Base_Test():
     @pytest.mark.dependency(depends=["dependecies_present", "save_config"])
     def test_sync_file_exist(self):
         self.setup_data_dir(remove_config_file=True)
-        
+
         # Create a config file
         conf = self.get_test_config()
         conf.save()
-        
+
         ##############################
         conf = self.get_test_config()
 
@@ -271,7 +268,5 @@ class Base_Test():
         assert mid_path != end_path
         assert start_path == end_path
         assert mid_path2 == end_path
-
-    # test sync
 
     # ? test unsupported data type ?
