@@ -1,17 +1,18 @@
 # Badger_Config_Handler
+
 A python library for handling code-declared and file-defined settings.
 
 Supports saving to JSON and YAML files.
 
-# Installation
+## Installation
 
 Install from [PyPi](https://pypi.org/project/badger-config-handler/)
 
-```
+``` bash
 pip install badger-config-handler
 ```
 
-# Rules and limitations
+## Rules and limitations
 
 1. settings are declared in the class and defined in [setup()](#setup-1)
 2. settings **MUST** be declared with a type hint.  example: `my_var: int`
@@ -21,9 +22,7 @@ pip install badger-config-handler
 6. settings without a default value set in [setup()](#setup-1) are not saved to the config file, but they can still be set from the config file
 7. The [root_path](#root_path) and [parent_section](#parent_section) propertys are NOT available in [setup()](#setup-1)
 
-
-
-# Example config
+## Example config
 
 ``` Python
 from pathlib import Path
@@ -76,12 +75,13 @@ config.load()
 config.sync()
 ```
 
+## Allowed data types
 
-# Allowed data types
+### native
 
-## native
 the file handlers have native support for these types and are used as is,
 no conversion is done on these values
+
 - string
 - int
 - float
@@ -89,24 +89,33 @@ no conversion is done on these values
 - None / null
 
 ---
-## supported
-### Badger_Config_Section
-converted using 
-- serialize: `{VAR}.to_dict()` 
+
+### supported
+
+#### Badger_Config_Section
+
+converted using
+
+- serialize: `{VAR}.to_dict()`
 - de-serialize: `Badger_Config_Section.from_dict({VAR})`
 
-### datetime.datetime
-converted using 
-- serialize: `{VAR}.isoformat()` 
+#### datetime.datetime
+
+converted using
+
+- serialize: `{VAR}.isoformat()`
 - de-serialize: `datetime.fromisoformat({VAR})`
 
-### pathlib.Path
-converted using 
-- serialize: `str({VAR})` 
+#### pathlib.Path
+
+converted using
+
+- serialize: `str({VAR})`
 - de-serialize: `pathlib.Path({VAR})`
 
 ---
-## Collections
+
+### Collections
 
 NOTE:
 
@@ -117,42 +126,47 @@ if they are not of [native](#native) type they are serialized but can NOT be de-
 
 Code using these values must handle these cases.
 
-### dict
+#### dict
 
-### list
-
-
----
----
----
-# Config Base
+#### list
 
 ---
-## Property's
+---
+---
+
+## Config Base
 
 ---
 
-### _config_file_path
+### Property's
+
+---
+
+#### _config_file_path
+
 > path to the config file
 
 ---
 
+#### ALLOWED_FILE_TYPES
 
-### ALLOWED_FILE_TYPES
 > all allowed file extensions
 
 ---
 ---
-## Function's
+
+### Function's
 
 ---
 
-### setup()
+#### setup()
+
 see [Config_Section.setup()](#setup-1)
 
 ---
 
-### save()
+#### save()
+
 Saves config to file
 
 steps:
@@ -163,49 +177,57 @@ steps:
 
 ---
 
-### load()
+#### load()
+
 Load config from file
 
 ---
 
-### sync()
+#### sync()
+
 Sync config with file
 
 runs: `load()` - `save()` - `load()`
 
 this adds new config fields to the file or removes old ones
 
-
 ---
 ---
 ---
 
-# Config Section
----
-## Property's
+## Config Section
 
 ---
 
-### section_name
+### Property's
+
+---
+
+#### section_name
+
 > name of the current section
 
 ---
 
-### root_path
+#### root_path
+
 > by default the project root path or overridden by the parent section
 
 ---
 
-### parent_section
+#### parent_section
+
 > reference to the parent section (if it exists)
 
 ---
 ---
-## Function's
+
+### Function's
 
 ---
 
-### setup()
+#### setup()
+
 Replacement for `__init__()`
 
 should be used to set default values
@@ -214,7 +236,8 @@ NOTE: the propertys [root_path](#root_path) and [parent_section](#parent_section
 
 ---
 
-### pre_process()
+#### pre_process()
+
 Pre process values before [save()](#save)
 
 Warning: the function should be written in a way that running it multiple times in a row doesn't cause problems
@@ -226,7 +249,8 @@ useful for:
 
 ---
 
-### post_process()
+#### post_process()
+
 post process values after [load()](#load)
 
 Warning: the function should be written in a way that running it multiple times in a row doesn't cause problems
@@ -238,7 +262,7 @@ useful for:
 
 ---
 
-### make_absolute_to_root(Path, bool)
+#### make_absolute_to_root(Path, bool)
 
 Help function to make a setting Path absolute to the sections [root_path](#root_path)
 
@@ -254,7 +278,7 @@ To avoid that use `enforce_in_root`.
 
 ---
 
-### make_relative_to_root(Path)
+#### make_relative_to_root(Path)
 
 Help function to make a setting Path relative to the sections [root_path](#root_path)
 
@@ -266,8 +290,9 @@ Help function to make a setting Path relative to the sections [root_path](#root_
 
 ---
 
-### to_dict(bool)
-converts all values to a dictionary 
+#### to_dict(bool)
+
+converts all values to a dictionary
 
 **Parameters:**
 
@@ -277,7 +302,8 @@ converts all values to a dictionary
 
 ---
 
-### from_dict()
+#### from_dict()
+
 Reconstruct Config Section from dictionary
 
 **Parameters:**
@@ -287,6 +313,5 @@ Reconstruct Config Section from dictionary
 | data           | dict\[str, [native](#native)\] | the dict representation of this section (as generated from [to_dict(True)](#to_dictbool) )                                         | x        |         |
 | safe_load      | bool                           | ! UNTESTED ! <br> True -> Only variables that already exist in the class are set (uses `hasattr`) <br> False -> New variables can be set from config file |          | True    |
 | danger_convert | bool                           | ! UNTESTED ! <br> For details see docs of `_native_to_var()`                                                                        |          | False   |
-
 
 ---
