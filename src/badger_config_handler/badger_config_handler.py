@@ -2,6 +2,7 @@
 from __future__ import annotations
 from abc import ABC
 from typing import Union
+import logging
 
 ########################################
 # Supported data type
@@ -12,19 +13,22 @@ from datetime import datetime
 ########################################
 
 
-DEBUG_init = False
-DEBUG_from_dict = False
-DEBUG_to_dict = False
+_DEBUG_init = False
+_DEBUG_from_dict = False
+_DEBUG_to_dict = False
 
-DEBUG__native_to_var = False
-DEBUG_save = False
-DEBUG_load = False
-DEBUG__load_from_file = False
-DEBUG__call_on_sections = False
+_DEBUG__native_to_var = False
+_DEBUG_save = False
+_DEBUG_load = False
+_DEBUG__load_from_file = False
+_DEBUG__call_on_sections = False
 
-DEBUG_root_path = False
+_DEBUG_root_path = False
 
 BADGER_NONE = object()
+logger = logging.getLogger("badger_config_handler")
+# print("__name__", __name__)
+
 
 # ? Not adding support for comments for now
 # use ruamel.yaml lib for comments
@@ -94,13 +98,12 @@ class _Config_data_handler(ABC):
             for unsupported types see `danger_convert` parameter
         """
 
-        if DEBUG_from_dict:
-            print("DEBUG from dict", "-"*50)
-            print("-"*20)
-            print(self)
-            print("-"*20)
-            print(data)
-            print()
+        logger.debug("DEBUG from dict", "-"*50)
+        logger.debug("-"*20)
+        logger.debug(self)
+        logger.debug("-"*20)
+        logger.debug(data)
+        logger.debug("")
 
         for s_name, s_value in data.items():
             # print(f"Key: {s_name}, value: {s_value}")
@@ -108,19 +111,18 @@ class _Config_data_handler(ABC):
 
             # if not safe_load or hasattr(self, s_name):
             if hasattr(self, s_name):
-                if DEBUG_from_dict:
-                    print()
-                    print("+"*50)
-                    print(f"Key: {s_name} \tvalue: {s_value}")
+                logger.debug("")
+                logger.debug("+"*50)
+                logger.debug(f"Key: {s_name} \tvalue: {s_value}")
 
-                    print()
-                    print("Annotations start")
-                    print("all: ", self.__annotations__)
+                logger.debug("")
+                logger.debug("Annotations start")
+                logger.debug("all: ", self.__annotations__)
 
                 target_type = self.__annotations__.get(
                     s_name, BADGER_NONE)
 
-                print()
+                logger.debug("")
 
                 if target_type is BADGER_NONE:
                     raise TypeError(
@@ -136,12 +138,11 @@ class _Config_data_handler(ABC):
                 else:
                     target_type = None
 
-                if DEBUG_from_dict:
-                    # print("post: var:", add_padding(target_type, 20),
-                    #     "type:", type(target_type))
+                # print("post: var:", add_padding(target_type, 20),
+                #     "type:", type(target_type))
 
-                    print("target type: ", target_type)
-                    print()
+                logger.debug("target type: ", target_type)
+                logger.debug("")
 
                 s_value = self._native_to_var(
                     var_native=s_value,
@@ -153,9 +154,9 @@ class _Config_data_handler(ABC):
 
                 self.__setattr__(s_name, s_value)
 
-        if DEBUG_from_dict:
-            print("DEBUG END from dict", "-"*50)
-            print("-"*20)
+        logger.debug("DEBUG END from dict", "-"*50)
+        logger.debug("-"*20)
+            
         return self
 
     ##################################################
@@ -291,10 +292,9 @@ class _Config_data_handler(ABC):
         var_dict = self._get_vars(
             self, input_dict=var_dict, convert_to_native=convert_to_native)
 
-        if DEBUG_to_dict:
-            print("DEBUG to dict:")
-            print(var_dict)
-            print()
+        logger.debug("DEBUG to dict:")
+        logger.debug(var_dict)
+        logger.debug("")
 
         return var_dict
 
@@ -459,11 +459,10 @@ class _Config_data_handler(ABC):
         """
 
         # target_type = type(class_var_target)
-        if DEBUG__native_to_var:
-            print(f"\nvar_name: {var_name}\n"
-                  f"var_native: {var_native} - {type(var_native)}"
-                  f"\ntarget_type: {target_type}\n"
-                  )
+        logger.debug(f"\nvar_name: {var_name}\n"
+                f"var_native: {var_native} - {type(var_native)}"
+                f"\ntarget_type: {target_type}\n"
+                )
 
         # if not isinstance(var_native, (str, int, float, bool)):
         #     raise TypeError("var_native must be a str, int, float or bool")
@@ -478,12 +477,12 @@ class _Config_data_handler(ABC):
 
         # Is a config section
         if issubclass(target_type, Badger_Config_Section):
-            if DEBUG__native_to_var:
-                print("-"*50)
-                print("DEBUG _native_to_var: native type", type(var_native))
+            logger.debug("-"*50)
+            logger.debug("DEBUG _native_to_var: native type", type(var_native))
             if not isinstance(var_native, dict):  # TODO make this a bit more elegent
-                raise TypeError(
-                    f"var_native must be of type 'dict' to create {Badger_Config_Section.__name__} instance")
+                error_msg = f"var_native must be of type 'dict' to create {Badger_Config_Section.__name__} instance"
+                logger.exception(error_msg)
+                raise TypeError(error_msg)
 
             #! Must create a instance of target_type() not Badger_Config_Section().
             #! when craeting from Badger_Config_Section the hasattr(self, s_name) check fails (see from_dict())
@@ -550,19 +549,19 @@ class Badger_Config_Section(_Config_data_handler):
             self.section_name = "DEFAULT"
             pass
 
-        if DEBUG_init:
-            print()
-            print("-"*30)
-            print(f"setup Badger_Config_Section")
-            print("-"*30)
-            print(self)
-            print(f"self.section_name = {self.section_name}")
-            print(f"section_name = {section_name}")
-            print()
+        logger.debug("")
+        logger.debug("-"*30)
+        logger.debug(f"setup Badger_Config_Section")
+        logger.debug("-"*30)
+        # logger.debug(self)
+        logger.debug(f"self.section_name = {self.section_name}")
+        logger.debug(f"section_name = {section_name}")
+        logger.debug("")
+
         self._set_root_path(root_path=root_path)
-        if DEBUG_init:
-            print("-"*30)
-            print()
+
+        logger.debug("-"*30)
+        logger.debug("")
 
         try:
             self.setup()
@@ -649,21 +648,21 @@ class Badger_Config_Section(_Config_data_handler):
         force_override : bool, optional
             `True` wil ingore check conditionds and override value, by default `False`
         """
-        if DEBUG_root_path:
+        if _DEBUG_root_path:
             print(f"root_path set = {hasattr(self, 'root_path')}")
 
         if root_path is None:
-            if DEBUG_root_path:
+            if _DEBUG_root_path:
                 print(f"root_path is None= {root_path}")
             return
 
         # if hasattr(self, "root_path") and not force_override:
         if hasattr(self, "root_path"):
-            if DEBUG_root_path:
+            if _DEBUG_root_path:
                 print(f"root_path already set")
             if not force_override:
                 return
-            if DEBUG_root_path:
+            if _DEBUG_root_path:
                 print(f"root_path force_override")
 
         # self.root_path = self._make_absolute_path(root_path)
@@ -674,7 +673,7 @@ class Badger_Config_Section(_Config_data_handler):
         if not self.root_path.is_dir():
             self.root_path = self.root_path.parent
 
-        if DEBUG_root_path:
+        if _DEBUG_root_path:
             print(f"root_path = {self.root_path}")
             print(f"root_path was dir: {_was_file}")
             print(f"root_path is dir: {self.root_path.is_dir()}")
@@ -761,14 +760,13 @@ class Badger_Config_Section(_Config_data_handler):
         """
         if isinstance(self._sections, list):
             for section in self._sections:
-                if DEBUG__call_on_sections:
-                    print(
-                        f"\n\nDEBUG CALL ON ALL SECTIONS: \n"
-                        f"section: {section}, \n"
-                        f"function: {func_name}\n"
-                        f"args: {args}\n"
-                        f"kwargs: {kwargs}"
-                    )
+                logger.debug(
+                    f"\n\nDEBUG CALL ON ALL SECTIONS: \n"
+                    f"section: {section}, \n"
+                    f"function: {func_name}\n"
+                    f"args: {args}\n"
+                    f"kwargs: {kwargs}"
+                )
                 try:
                     func = getattr(section, func_name)
                     func(*args, **kwargs)
@@ -985,10 +983,9 @@ class Badger_Config_Base(Badger_Config_Section):
 
         Pre process's all sub sections and write the values to file
         """
-        if DEBUG_save:
-            print("-"*50)
-            print("DEBUG START SAVE")
-            print("-"*50)
+        logger.debug("-"*50)
+        logger.debug("DEBUG START SAVE")
+        logger.debug("-"*50)
 
         self._update_sections_all()
         self._pre_process_all()
@@ -998,10 +995,9 @@ class Badger_Config_Base(Badger_Config_Section):
 
         self._post_process_all()
 
-        if DEBUG_save:
-            print("-"*50)
-            print("DEBUG END SAVE")
-            print("-"*50)
+        logger.debug("-"*50)
+        logger.debug("DEBUG END SAVE")
+        logger.debug("-"*50)
 
     def _save_to_file(self, data: dict):
         self._create_dir()
@@ -1056,34 +1052,30 @@ class Badger_Config_Base(Badger_Config_Section):
             if auto_create -> False and config file was not found 
 
         """
-        if DEBUG_load:
-            print("-"*50)
-            print("DEBUG START LOAD")
-            print("-"*50)
+        logger.debug("-"*50)
+        logger.debug("DEBUG START LOAD")
+        logger.debug("-"*50)
 
         data, created_new = self._load_from_file(auto_create=auto_create)
         self.from_dict(data=data, safe_load=safe_load)
 
-        # try:
-        if DEBUG_load:
-            print("-"*50)
-            print("DEBUG START post_process_all")
-            print("-"*50)
+        # try: # TODO move this
+        logger.debug("-"*50)
+        logger.debug("DEBUG START post_process_all")
+        logger.debug("-"*50)
 
         self._update_sections_all()
         self._post_process_all()
 
-        if DEBUG_load:
-            print("-"*50)
-            print("DEBUG END post_process_all")
-            print("-"*50)
+        logger.debug("-"*50)
+        logger.debug("DEBUG END post_process_all")
+        logger.debug("-"*50)
         # except NotImplementedError:
         #     pass
 
-        if DEBUG_load:
-            print("-"*50)
-            print("DEBUG END LOAD")
-            print("-"*50)
+        logger.debug("-"*50)
+        logger.debug("DEBUG END LOAD")
+        logger.debug("-"*50)
 
         return created_new
 
@@ -1096,10 +1088,9 @@ class Badger_Config_Base(Badger_Config_Section):
             by default True\n
             if config file not found auto create it
         """
-        if DEBUG__load_from_file:
-            print("-"*50)
-            print("DEBUG START LOAD FROM FILE")
-            print("-"*50)
+        logger.debug("-"*50)
+        logger.debug("DEBUG START LOAD FROM FILE")
+        logger.debug("-"*50)
 
         created_new = False
 
@@ -1137,10 +1128,9 @@ class Badger_Config_Base(Badger_Config_Section):
                 raise FileNotFoundError(
                     f"Unable to read from file, might be empty. Path: {str(self._config_file_path)}")
 
-        if DEBUG__load_from_file:
-            print("-"*50)
-            print("DEBUG END LOAD FROM FILE")
-            print("-"*50)
+        logger.debug("-"*50)
+        logger.debug("DEBUG END LOAD FROM FILE")
+        logger.debug("-"*50)
 
         return data, created_new
 
@@ -1173,5 +1163,5 @@ class Badger_Config_Base(Badger_Config_Section):
         if not created_new:
             self.save()
             self.load(safe_load=safe_load)
-            
+
         return created_new
