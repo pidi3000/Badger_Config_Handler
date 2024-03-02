@@ -859,9 +859,17 @@ class Badger_Config_Section(_Config_data_handler):
 
         Raises
         ------
+        TypeError
+            If `relative_path` is not of type `Path`
+
         ValueError
             if `enforce_in_root` is `True` and the resolved absolute path is NOT a sub directory of root_path
         """
+
+        if not isinstance(relative_path, Path):
+            raise TypeError(
+                f"'relative_path' must be of type 'Path', not '{type(relative_path)}'")
+
         if relative_path.is_absolute():
             return relative_path
 
@@ -889,9 +897,17 @@ class Badger_Config_Section(_Config_data_handler):
 
         Raises
         ------
+        TypeError
+            If `absolute_path` is not of type `Path`
+
         ValueError
             If `absolute_path` is not relative root_path
         """
+
+        if not isinstance(absolute_path, Path):
+            raise TypeError(
+                f"'absolute_path' must be of type 'Path', not '{type(absolute_path)}'")
+
         if absolute_path.is_absolute():
             # if absolute_path.is_relative_to(self.root_path):
             if self._is_relative_to(absolute_path, self.root_path):
@@ -1173,5 +1189,5 @@ class Badger_Config_Base(Badger_Config_Section):
         if not created_new:
             self.save()
             self.load(safe_load=safe_load)
-            
+
         return created_new
